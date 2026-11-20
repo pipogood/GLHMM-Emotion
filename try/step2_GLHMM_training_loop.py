@@ -11,7 +11,8 @@ from glhmm import glhmm, io
 
 data_root = r"C:\Users\pipo\Datasets-Docs\Multimodal Dataset for Mixed Emotion Recognition\preprocessed_GLHMM"
 K = 4 # Define state number for GLHMM
-model_folder_name = f"GLHMM_K{K}_noPCA"
+input_file = "DMER_GLHMM_features_Theta.npz"
+output_model_folder_name = f"GLHMM_K{K}_noPCA_Theta"
 
 train_options = {
     "cyc": 200,
@@ -19,7 +20,7 @@ train_options = {
     "initrep": 3,
     "serial": True,
     "deactivate_states": False,
-    "verbose": False,
+    "verbose": True,
     "gpu_acceleration": 0
 }
 
@@ -28,7 +29,7 @@ train_options = {
 # =========================
 
 subject_files = sorted(glob.glob(
-    os.path.join(data_root, "*", "DMER_GLHMM_features.npz")
+    os.path.join(data_root, "*", input_file)
 ))
 
 print("Total subjects:", len(subject_files))
@@ -44,7 +45,7 @@ for i, file_path in enumerate(subject_files):
 
     save_dir = os.path.join(
         subject_dir,
-        model_folder_name
+        output_model_folder_name
     )
 
     os.makedirs(save_dir, exist_ok=True)
@@ -53,9 +54,9 @@ for i, file_path in enumerate(subject_files):
     result_path = os.path.join(save_dir, "GLHMM_results.npz")
 
     # Skip completed subjects
-    if os.path.exists(model_path) and os.path.exists(result_path):
-        print(f"Subject {subject_id}: Already trained. Skipping.")
-        continue
+    # if os.path.exists(model_path) and os.path.exists(result_path):
+    #     print(f"Subject {subject_id}: Already trained. Skipping.")
+    #     continue
 
     # Initialize variables for memory cleanup
     X = Y = indices = None
@@ -151,7 +152,5 @@ for i, file_path in enumerate(subject_files):
         del hmm, Gamma, Xi, FE
 
         gc.collect()
-
-        print(f"Subject {subject_id}: Memory released.")
 
 print("\n===== ALL SUBJECTS FINISHED =====")

@@ -12,6 +12,23 @@ files = os.listdir(path)
 save_path = r"C:\Users\pipo\Datasets-Docs\Multimodal Dataset for Mixed Emotion Recognition\preprocessed_GLHMM"
 save_name = "DMER_GLHMM_features.npz"  # Don't forget to change the name of the file if you change the features or preprocessing steps
 
+# =========================
+# SETTINGS
+# =========================
+eeg_window = 4  # seconds
+gsr_window = 5
+ppg_window = 8
+
+step = 1  # second
+
+freq_bands = {
+    "Delta": (1, 4),
+    "Theta": (4, 8),
+    "Alpha": (8, 13),
+    "Beta":  (13, 30),
+    "Gamma": (30, 50)
+}
+
 for i in files:
     # EEG, GSR, and PPG data loading
     if i == "2" or i == "35":
@@ -70,27 +87,17 @@ for i in files:
             behave_Emotion_trials.append(Emotion_trial)
             behave_PANAS_trials.append(PANAS_trial)
             
-            eeg_window = 4  # seconds
-            gsr_window = 5
-            ppg_window = 8
 
-            step = 1  # second
+        # =========================
+        # FEATURE STORAGE
+        # =========================
+        eeg_features = []
+        gsr_features = []
+        ppg_features = []
 
-            freq_bands = {
-                "Delta": (1, 4),
-                "Theta": (4, 8),
-                "Alpha": (8, 13),
-                "Beta":  (13, 30),
-                "Gamma": (30, 50)
-            }
-
-            eeg_features = []
-            gsr_features = []
-            ppg_features = []
-
-            trial_lengths = []
-            feature_times = []
-            trial_ids = []
+        trial_lengths = []
+        feature_times = []
+        trial_ids = []
 
         # =========================
         # EXTRACT FEATURES
@@ -118,15 +125,19 @@ for i in files:
             ppg_fea_trial = []
 
             # First valid time point = 8 seconds
-            for t in range(max(eeg_window, gsr_window, ppg_window),
-                        duration + 1, step):
+            
+            for t in np.arange(
+                max(eeg_window, gsr_window, ppg_window),
+                duration + step / 2, step):
 
                 # =========================
                 # EEG FEATURES
                 # =========================
+
                 eeg_seg = eeg_trial[
                     :,
-                    (t - eeg_window) * fs_eeg : t * fs_eeg
+                    int(round((t - eeg_window) * fs_eeg)):
+                    int(round(t * fs_eeg))
                 ]
 
                 freqs, psd = welch(
@@ -156,9 +167,12 @@ for i in files:
                 # =========================
                 # GSR FEATURES
                 # =========================
+                
+                
                 gsr_seg = gsr_trial[
                     0,
-                    (t - gsr_window) * fs_gsr : t * fs_gsr
+                    int(round((t - gsr_window) * fs_gsr)):
+                    int(round(t * fs_gsr))
                 ]
 
                 gsr_mean = np.mean(gsr_seg)
@@ -178,9 +192,11 @@ for i in files:
                 # =========================
                 # PPG FEATURES
                 # =========================
+
                 ppg_seg = ppg_trial[
                     0,
-                    (t - ppg_window) * fs_ppg : t * fs_ppg
+                    int(round((t - ppg_window) * fs_ppg)):
+                    int(round(t * fs_ppg))
                 ]
 
                 ppg_std = np.std(ppg_seg)
@@ -216,10 +232,11 @@ for i in files:
 
             trial_lengths.append(len(eeg_fea_trial))
 
+
             feature_times.append(
                 np.arange(
                     max(eeg_window, gsr_window, ppg_window),
-                    duration + 1,
+                    duration + step / 2,
                     step
                 )
             )
