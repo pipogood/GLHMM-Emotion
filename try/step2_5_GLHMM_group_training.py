@@ -11,7 +11,7 @@ from glhmm import glhmm, io
 
 data_root = r"C:\Users\pipo\Datasets-Docs\Multimodal Dataset for Mixed Emotion Recognition\preprocessed_GLHMM"
 
-save_dir = os.path.join(data_root, "GLHMM_Group_K4_noPCA_05sec")
+save_dir = os.path.join(data_root, "GLHMM_Group_K4_noPCA_05sec_fullCov")  ## change this for output
 os.makedirs(save_dir, exist_ok=True)
 
 subject_files = sorted(
@@ -19,7 +19,7 @@ subject_files = sorted(
         os.path.join(
             data_root,
             "*",
-            "DMER_GLHMM_features_05sec.npz"
+            "DMER_GLHMM_features_05sec.npz" ## change this for input
         )
     )
 )
@@ -49,10 +49,11 @@ K = 4
 
 hmm = glhmm.glhmm(
     K=K,
-    covtype="diag",
+    # covtype="diag",
+    covtype="full",
     model_mean="state",
     model_beta="state",
-    dirichlet_diag=10
+    dirichlet_diag=5
 )
 
 # =========================
